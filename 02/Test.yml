@@ -1,0 +1,46 @@
+Resources:
+  OriginAccessControl:
+   Type: AWS::CloudFront::OriginAccessControl
+   Properties:
+    OriginAccessControlConfig: 
+     Name: Orgin-Access-Control 
+     OriginAccessControlOriginType: s3
+     SigningBehavior: always
+     SigningProtocol: sigv4
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: sensiple-2023.s3.us-west-2.amazonaws.com
+            Id: S3Origin  
+            OriginAccessControlId: !Ref OriginAccessControl 
+            S3OriginConfig:
+             OriginAccessIdentity: ""
+        Enabled: 'true'
+        HttpVersion: http2
+        DefaultRootObject: ''
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          TargetOriginId: S3Origin
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+          MinTTL: 0
+          DefaultTTL: 86400
+          MaxTTL: 31536000
+          Compress: 'true'
+        CacheBehaviors: []
+        CustomErrorResponses: []
+        Comment: ''
+        Logging:
+          IncludeCookies: 'false'
+          Bucket: ''
+          Prefix: ''
+        PriceClass: PriceClass_All
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'

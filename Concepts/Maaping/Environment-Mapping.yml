@@ -1,0 +1,51 @@
+##Parameters
+Parameters:
+ EnvironmentName:
+  Description: Select the suitable Evironmental type
+  Type: String
+  Default: qa       
+  AllowedValues:
+   - qa
+   - dev
+   - prod
+ MykeyName:
+  Description: Select the suitable KeyName
+  Type: AWS::EC2::KeyPair::KeyName
+ MyAvailabilityZone:
+  Description: Select the Suitable Availability Zone
+  Type: String
+  Default: ap-south-1a
+  AllowedValues:
+   - ap-south-1a
+   - ap-south-1b
+   - ap-south-1c
+##Mappings
+Mappings:
+ EnvironmentMapping:
+  qa:
+   InstanceType: t2.micro
+  dev:
+   InstanceType: t2.micro
+  prod:
+   InstanceType: t2.small
+ MyRegionSelection:
+  us-east-1:
+   Region1: ami-08a9ee2101e73d07d
+  ap-south-1:
+   Region1: ami-02d573df6e07a6c1c
+##Resources   
+Resources:
+  MyEc2Instance:
+   Type: AWS::EC2::Instance
+   Properties:
+    ImageId: !FindInMap 
+     - MyRegionSelection
+     - !Ref 'AWS::Region'
+     - Region1
+    InstanceType: !FindInMap 
+      - EnvironmentMapping
+      - !Ref EnvironmentName
+      - InstanceType
+    KeyName: !Ref MykeyName
+    AvailabilityZone: !Ref MyAvailabilityZone
+  

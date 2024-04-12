@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Ec2-Instance
+Resources: 
+  MyTestingEC2Instance: 
+    Type: 'AWS::EC2::Instance'
+    Properties: 
+      ImageId: ami-06f1cbbde8ca2a854
+      InstanceType: t2.small
+      KeyName: cloudformation-27-03-2024-02
+      SecurityGroups:
+        - default
+        - !Ref SSHSecurityGroup
+  SSHSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+     GroupDescription: My New SSH SG
+     SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '8080'
+          ToPort: '8080'
+          CidrIp: 0.0.0.0/0
+  MyElasticIp:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+       InstanceId: !Ref MyTestingEC2Instance

@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: MyAssembly::MyNamespace.MyClass::MyMethod
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: dotnet6
+      Code:
+        S3Bucket: cloudformation-lambda-28032024
+        S3Key: dotnet-hello-world-master.zip
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - S3:*
+                Resource: "*"
+  MyRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: cm-connector-api-01
+  MyLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt MyLambdaFunction.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyRestApi}/*/*"

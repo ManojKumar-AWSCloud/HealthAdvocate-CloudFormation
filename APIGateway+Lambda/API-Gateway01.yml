@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: MyAPIGateway
+
+  MyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref MyRestApi
+      ParentId: !GetAtt MyRestApi.RootResourceId
+      PathPart: myresource
+
+  MyLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: MyAssembly::MyNamespace.MyClass::MyMethod
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: dotnetcore3.1
+      Code:
+        ZipFile: !Sub |
+          using System;
+          using Amazon.Lambda.Core;
+
+          namespace MyNamespace
+          {
+              public class MyClass
+              {
+                  public string MyMethod(ILambdaContext context)
+                  {
+                      return "Hello from Lambda!";
+                  }
+              }
+          }
+
+  MyMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      ResourceId: !Ref MyResource
+      RestApiId: !Ref MyRestApi
+      Integration:
+        Type: AWS
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MyLambdaFunction.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"

@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: 2010-09-09
+#parameters
+Parameters:
+ EnvironmentName:
+  Description: Select the suitable Evironmental type
+  Type: String
+  Default: qa       
+  AllowedValues:
+   - qa
+   - dev
+   - prod
+ MykeyName:
+  Description: Select the suitable KeyName
+  Type: AWS::EC2::KeyPair::KeyName
+ MyAvailabilityZone:
+  Description: Select the Suitable Availability Zone
+  Type: String
+  Default: ap-south-1a
+  AllowedValues:
+   - ap-south-1a
+   - ap-south-1b
+   - ap-south-1c
+#Mappings
+Mappings:
+ EnvironmentMapping:
+  qa:
+   InstanceType: t2.micro
+  dev:
+   InstanceType: t2.micro
+  prod:
+   InstanceType: t2.small
+ MyRegionSelection:
+  us-east-1:
+   Region1: ami-08a9ee2101e73d07d
+  ap-south-1:
+   Region1: ami-02d573df6e07a6c1c
+#Condition
+Conditions: 
+ CreateEIPForProd: !Equals [!Ref EnvironmentName, dev]
+ CreateSGDevEnv: !Equals [!Ref EnvironmentName, dev]
+ CreateSGProdEnv: !Equals [!Ref EnvironmentName, prod]
+ CreateSGQaEnv: !Equals 
+#Resources   
+Resources:
+#Ec2-Instance
+  MyEc2Instance:
+   Type: AWS::EC2::Instance
+   Properties:
+    ImageId: !FindInMap 
+     - MyRegionSelection
+     - !Ref 'AWS::Region'
+     - Region1
+    InstanceType: !FindInMap 
+      - EnvironmentMapping
+      - !Ref EnvironmentName
+      - InstanceType
+    KeyName: !Ref MykeyName
+    AvailabilityZone: !Ref MyAvailabilityZone
+    SecurityGroups:
+     - !If
+      - CreateSGDevEnv
+      - !Ref DevSecurityGroup
+      - !Ref ProdSecurityGroup
+#ElasticIP
+  MyElasticIp:
+    Type: AWS::EC2::EIP
+    Condition: CreateEIPForProd 
+    Properties:
+     InstanceId: !Ref MyEc2Instance
+#SecurityGroup
+  DevSecurityGroup:
+   Type: AWS::EC2::SecurityGroup
+   Condition:  CreateSGDevEnv
+   Properties:
+    GroupDescription: Dev-SG
+    SecurityGroupIngress:
+     - IpProtocol: tcp
+       FromPort: '22'
+       ToPort: '22'
+       CidrIp: 0.0.0.0/0
+  ProdSecurityGroup:
+   Type: AWS::EC2::SecurityGroup
+   Condition:  CreateSGProdEnv
+   Properties:
+    GroupDescription: Prod-SG
+    SecurityGroupIngress:
+     - IpProtocol: tcp
+       FromPort: '88'
+       ToPort: '88'
+       CidrIp: 0.0.0.0/0
+

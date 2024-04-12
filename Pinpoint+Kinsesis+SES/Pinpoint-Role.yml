@@ -1,0 +1,20 @@
+Resources:
+  PinpointKinesisAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: pinpointKinesisAccessRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: pinpoint.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: KinesisS3AccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: Kinesis:*
+                Resource: "*"

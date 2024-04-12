@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  EmailAddress:
+    Type: String
+    Description: Type your email Address here which you want to use in Pinoint.
+Resources:
+  MySESIdentity:
+    Type: AWS::SES::EmailIdentity
+    Properties:
+       EmailIdentity: !Ref EmailAddress
+  PinpointProject:
+    Type: 'AWS::Pinpoint::App'
+    Properties:
+      Name: Testing-Project
+  EmailChannel:
+    Type: 'AWS::Pinpoint::EmailChannel'
+    Properties:
+      ApplicationId: !Ref PinpointProject
+      Enabled: true
+      FromAddress: !Ref MySESIdentity
+      Identity: !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${MySESIdentity}"
+  
+    

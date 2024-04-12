@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: KeyName-Parameter-Demo
+
+Parameters:
+  MykeyName:
+    Description: Key-Demo
+    Type: AWS::EC2::KeyPair::KeyName
+  MyAvailabilityZone:
+    Description: Select the Availability ZOne
+    Type: String
+    Default: us-east-1a
+    AllowedValues:
+      - us-east-1a
+      - us-east-1b
+      - us-east-1c
+      - us-east-1d
+      - us-east-1e
+      - us-east-1f
+  MyInstanceType:
+     Description: Select the EC2 Instance type from SSM-Parameter
+     Type: AWS::SSM::Parameter::Value<String>
+Resources: 
+  MyTestingEC2Instance: 
+    Type: 'AWS::EC2::Instance'
+    Properties: 
+      ImageId: ami-06f1cbbde8ca2a854
+      InstanceType: !Ref MyInstanceType
+      KeyName: !Ref MykeyName
+      AvailabilityZone: !Ref MyAvailabilityZone

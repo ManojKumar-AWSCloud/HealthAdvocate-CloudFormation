@@ -1,0 +1,70 @@
+Resources:  
+  OriginAccessControl:
+   Type: AWS::CloudFront::OriginAccessControl
+   Properties:
+    OriginAccessControlConfig: 
+     Name: Orgin-Access-Control 
+     OriginAccessControlOriginType: s3
+     SigningBehavior: always
+     SigningProtocol: sigv4
+  publicDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt MyS3Bucket.DomainName
+            Id: S3-private-bucket
+            OriginAccessControlId: !Ref OriginAccessControl 
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        Enabled: 'true'
+        Comment: Some comment
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          TargetOriginId: S3-private-bucket
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: allow-all
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: cloud-formation-29-03-202309
+      AccessControl: Private
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration: 
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      ObjectLockEnabled: false
+      VersioningConfiguration:
+        Status: Enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+  MyBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref MyS3Bucket
+      PolicyDocument:
+        Version: "2008-10-17"
+        Id: "PolicyForCloudFrontPrivateContent"
+        Statement:
+          - Sid: "AllowCloudFrontServicePrincipal"
+            Effect: "Allow"
+            Principal:
+              Service: "cloudfront.amazonaws.com"
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${MyS3Bucket}/*"
+            Condition:
+              StringEquals:
+                "AWS:SourceArn": !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${publicDistribution}"

@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation template for creating an identity in AWS SES
+
+Parameters:
+  EmailAddress:
+    Type: String
+    Description: Type your email Address here which you want to use in Pinoint.
+Resources:
+  MySESIdentity:
+    Type: AWS::SES::EmailIdentity
+    Properties:
+       EmailIdentity: !Ref EmailAddress

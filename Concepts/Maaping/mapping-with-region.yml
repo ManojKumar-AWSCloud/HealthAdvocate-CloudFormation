@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Mappings:
+  MyRegionSelection:
+    us-east-1:
+      Region1: ami-08a9ee2101e73d07d
+    ap-south-1:
+      Region1: ami-02d573df6e07a6c1c
+
+Parameters:
+  MyAvailabilityZone:
+    Description: Select the Availability ZOne
+    Type: String
+    Default: us-east-1a
+    AllowedValues:
+      - us-east-1a
+      - us-east-1b
+      - us-east-1c
+      - us-east-1d
+      - us-east-1e
+      - us-east-1f
+      - ap-south-1a
+      - ap-south-1b
+      - ap-south-1c
+  MykeyName:
+      Description: Select the suitable Key
+      Type: AWS::EC2::KeyPair::KeyName
+
+      
+Resources:
+  MyEc2Instance:
+   Type: AWS::EC2::Instance
+   Properties:
+    ImageId: !FindInMap 
+     - MyRegionSelection
+     - !Ref 'AWS::Region'
+     - Region1
+    InstanceType: t2.micro
+    KeyName: !Ref MykeyName
+    AvailabilityZone: !Ref MyAvailabilityZone
+
+     
+  

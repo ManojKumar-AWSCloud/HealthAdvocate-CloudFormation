@@ -1,0 +1,79 @@
+Resources:
+  MyStandardQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      QueueName: "cloudformationqueue"
+      KmsMasterKeyId: "alias/aws/sqs"
+      KmsDataKeyReusePeriodSeconds: 300
+      VisibilityTimeout: 30
+      MessageRetentionPeriod: 86400
+  MystandardQueuePolicy:
+   Type: AWS::SQS::QueuePolicy
+   Properties:
+    Queues:
+        - !Ref MyStandardQueue
+    PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "AllowSendMessage"
+            Effect: "Allow"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "SQS:SendMessage"
+            Resource: !GetAtt MyStandardQueue.Arn
+          - Sid: "AllowReceiveMessage"
+            Effect: "Allow"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: 
+              - "SQS:ReceiveMessage"
+              - "SQS:DeleteMessage"
+            Resource: !GetAtt MyStandardQueue.Arn
+  SenderLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: MyAssembly::MyNamespace.MyClass::MyMethod
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: dotnet6
+      Code:
+        S3Bucket: cloudformation-lambda-28032024
+        S3Key: dotnet-hello-world-master.zip
+  ReceiverLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: MyAssembly::MyNamespace.MyClass::MyMethod
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: dotnet6
+      Code:
+        S3Bucket: cloudformation-lambda-28032024
+        S3Key: dotnet-hello-world-master.zip
+      Timeout: 30
+      Environment:
+        Variables:
+          DEAD_LETTER_QUEUE_URL: 'https://sqs.us-west-2.amazonaws.com/112550741905/Demo'
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - S3:*
+                  - dynamodb:*
+                  - connect:*
+                  - SQS:*
+                Resource: "*"
+ 

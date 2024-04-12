@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: cm-connector-api
+  MyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref MyRestApi
+      ParentId: !GetAtt MyRestApi.RootResourceId
+      PathPart: "{proxy+}"   
+  OptionMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      ResourceId: !Ref MyResource
+      RestApiId: !Ref MyRestApi
+      Integration:
+        Type: MOCK
+        IntegrationHttpMethod: POST
+  MyDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: 
+    - AnyMethod
+    - OptionMethod
+    Properties:
+      RestApiId: !Ref MyRestApi
+  MyStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      DeploymentId: !Ref MyDeployment
+      RestApiId: !Ref MyRestApi
+      StageName: dev

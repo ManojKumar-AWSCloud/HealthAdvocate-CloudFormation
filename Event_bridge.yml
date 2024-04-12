@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+ SchedulerExperssionGroup:
+  Type: AWS::Scheduler::ScheduleGroup
+  Properties:
+   Name: Scheduler-Group-For-lambda
+ SchedulerExperssionLambda:
+  Type: AWS::Scheduler::Schedule
+  Properties:
+   Description: SchedulerExperssion
+   EndDate: "2024-04-16T08:00:00.000Z" 
+   FlexibleTimeWindow: 
+    Mode: FLEXIBLE
+    MaximumWindowInMinutes: 60  
+   GroupName: !Ref SchedulerExperssionGroup
+   ScheduleExpression:  "cron(0 8 * * ? *)"  
+   ScheduleExpressionTimezone: IST
+   StartDate: "2024-04-10T08:00:00.000Z"
+   State: ENABLED
+   Target:
+     Arn: arn:aws:lambda:ap-south-1:112550741905:function:test
+     RoleArn: arn:aws:iam::112550741905:role/service-role/Amazon_EventBridge_Scheduler_LAMBDA_a1e77bf630

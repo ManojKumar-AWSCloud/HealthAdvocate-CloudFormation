@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Ec2-Instance
+Resources: 
+  MyTestingEC2Instance: 
+    Type: 'AWS::EC2::Instance'
+    Properties: 
+      ImageId: ami-06f1cbbde8ca2a854
+      InstanceType: t2.small
+      KeyName: cloudformation-27-03-2024-02
+      SecurityGroups:
+        - default
+        

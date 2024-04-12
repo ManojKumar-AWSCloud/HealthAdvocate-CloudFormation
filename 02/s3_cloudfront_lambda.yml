@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Add the project description"
+Resources:
+  Custominputdata:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: bucket-name
+      
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution #CloudFront
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: sen-campaignmanager-ui-dev.s3.us-west-2.amazonaws.com #s3 domain name
+            Id: S3Origin
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+        Enabled: 'true'
+        HttpVersion: http2
+        DefaultRootObject: ''
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          TargetOriginId: S3Origin
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+          MinTTL: 0
+          DefaultTTL: 86400
+          MaxTTL: 31536000
+          Compress: 'true'
+        CacheBehaviors: []
+        CustomErrorResponses: []
+        Comment: ''
+        Logging:
+          IncludeCookies: 'false'
+          Bucket: ''
+          Prefix: ''
+        PriceClass: PriceClass_All
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'
+        Restrictions:
+          GeoRestriction:
+            RestrictionType: none
+        WebACLId: ''
+        HttpVersion: http2
+        
+  InboundProcessorFunctionPSD:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: lambda-name #Lambda name
+      Handler: "Sensiple.HA.Pinpoint.Segment.DataProcessor::Sensiple.HA.Pinpoint.Segment.DataProcessor.Function::FunctionHandler"
+      Role: arn:aws:iam::112550741905:role/campaignmanager-lambda-role
+      Runtime: dotnet6
+      Code:
+        S3Bucket: sen-campaignmanager   
+        S3Key: segmentdataprocessor.zip 
+      Environment:
+        Variables:
+          REGION: us-east-1
+          DDB_TABLE_USERDATA: cm-segmentdata
+          S3_BUCKET_USERDATA: sen-campaignmanager-pinpoint-segementdata	
+      Timeout: 300  #5mins
+      MemorySize: 512
+      Description: Lambda function to capture, process and store the segment data in dynamoDB
+      TracingConfig:
+        Mode: Active
+      Tags:
+        - Key: Name
+          Value: MyFunction
+
+Outputs:
+  DistributionDomainName:
+    Description: "CloudFront Distribution Domain Name"
+    Value: !GetAtt CloudFrontDistribution.DomainName

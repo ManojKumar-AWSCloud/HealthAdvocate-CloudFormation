@@ -1,0 +1,21 @@
+ Resources:
+  S3BucketFirehouseDeliveryStream:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: firehouse-29-03-202309
+      AccessControl: Private
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration: 
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      ObjectLockEnabled: false
+      VersioningConfiguration:
+        Status: Enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred

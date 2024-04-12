@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: cloud-formation-29-03-2024
+  CloudFrontOriginControl:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+       CloudFrontOriginAccessIdentityConfig:
+        Comment: 'origin Access Control'
+  MyCloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt MyS3Bucket.DomainName
+            Id: myS3Origin
+            S3OriginConfig: 
+              OriginAccessIdentity: ""
+        Enabled: true
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          TargetOriginId: myS3Origin
+          ForwardedValues:
+            QueryString: false
+          ViewerProtocolPolicy: allow-all
+       

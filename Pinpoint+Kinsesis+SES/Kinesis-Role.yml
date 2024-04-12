@@ -1,0 +1,20 @@
+Resources:
+  KinesisS3AccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: KinesisS3AccessRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: kinesis.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: KinesisS3AccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: s3:*
+                Resource: "*"

@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  MyApi:
+    Type: 'AWS::ApiGateway::RestApi'
+    Properties:
+      Name: api-final-check
+  OptionsMethod:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+          - StatusCode: '200'
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: >-
+                'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'
+              method.response.header.Access-Control-Allow-Methods: '''POST,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: MOCK
+      MethodResponses:
+        - StatusCode: '200'
+          ResponseModels:
+            application/json: Empty
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+      ResourceId: !GetAtt MyApi.RootResourceId
+      RestApiId: !Ref MyApi
+  ApiDeployment:
+    Type: 'AWS::ApiGateway::Deployment'
+    DependsOn: 
+      - OptionsMethod
+    Properties:
+      RestApiId: !Ref MyApi
+  NewStage:
+    Type: 'AWS::ApiGateway::Stage'
+    DependsOn: ApiDeployment
+    Properties:
+      StageName: dev
+      RestApiId: !Ref MyApi
+      DeploymentId: !Ref ApiDeployment
+      Description: New Stage for MyApi
